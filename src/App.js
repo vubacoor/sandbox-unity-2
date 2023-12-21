@@ -45,10 +45,17 @@ function App() {
     const opponentCharacters = exportData.battleInput.opponentCharacters.map(
       (character) => formatCharacterData(character, 2)
     );
+
+    // public List<int> winBattles;
+    // public List<int> lostBattles;
+    // public List<int> drawBattles;
+    // public double winRate;
+
     const battleDatas = exportData.battleDatas;
-    const total = exportData.total;
-    const totalWin = exportData.totalWin;
-    const totalLoss = exportData.totalLoss;
+    const totalWin = exportData.winBattles.length;
+    const totalLoss = exportData.lostBattles.length;
+    const totalDraws = exportData.drawBattles.length;
+    const total = totalWin + totalLoss + totalDraws;
     const winRate = exportData.winRate;
 
     const workbook = XLSX.utils.book_new();
@@ -71,15 +78,41 @@ function App() {
     ];
 
     const worksheet2 = XLSX.utils.json_to_sheet([
-      {
-        total,
-        totalWin,
-        totalLoss,
-        winRate: winRate + "%",
-      },
+      ["Total win", totalWin],
+      [
+        "Battle",
+        JSON.stringify(exportData.winBattles).substring(1).replace("]", ""),
+      ],
+      ["", ""],
+      ["Total loss", totalLoss],
+      [
+        "Battle",
+        JSON.stringify(exportData.lostBattles).substring(1).replace("]", ""),
+      ],
+      ["", ""],
+      ["Total draws", totalDraws],
+      [
+        "Battle",
+        JSON.stringify(exportData.drawBattles).substring(1).replace("]", ""),
+      ],
+      ["", ""],
+      ["Total", total],
+      ["", ""],
+      ["Win rate", winRate + "%"],
+      ["", ""],
     ]);
+
     XLSX.utils.book_append_sheet(workbook, worksheet2, "Run Info ");
     battleDatas.forEach((battleOutput, i) => {
+      let battleStatus;
+      const battleNo = i + 1;
+      if (exportData.winBattles.includes(battleNo)) {
+        battleStatus = "Win";
+      } else if (exportData.lostBattles.includes(battleNo)) {
+        battleStatus = "Loose";
+      } else {
+        battleStatus = "Draw";
+      }
       let excelData = [];
       battleOutput.forEach((columnDatas) => {
         let excelDataItem = {};
@@ -89,7 +122,11 @@ function App() {
         excelData.push(excelDataItem);
       });
       const worksheet = XLSX.utils.json_to_sheet(excelData);
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Battle " + (i + 1));
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Battle " + (i + 1) + `(${battleStatus})`
+      );
     });
     XLSX.writeFile(workbook, "Bk-Combat-Data.xlsx");
   };
