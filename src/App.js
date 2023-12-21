@@ -109,7 +109,7 @@ function App() {
       if (exportData.winBattles.includes(battleNo)) {
         battleStatus = "Win";
       } else if (exportData.lostBattles.includes(battleNo)) {
-        battleStatus = "Loose";
+        battleStatus = "Lost";
       } else {
         battleStatus = "Draw";
       }
