@@ -97,6 +97,11 @@ function App() {
       data.forEach((dataItem) => {
         mergedData.push(dataItem);
       });
+      if (characterInput.equiments.length > 0) {
+        mergedData.push(["Equipment: ", characterInput.equiments[0].key]);
+        const stats = getEquipmentStats(characterInput.equiments[0]);
+        mergedData = [...mergedData, ...stats];
+      }
     });
 
     // public List<int> winBattles;
