@@ -27,24 +27,77 @@ function App() {
     };
   }, [addEventListener, removeEventListener, isLoaded]);
 
-  const formatCharacterData = (character, teamNo) => {
-    return {
-      ...character.baseStat,
-      itemList: JSON.stringify(character.itemList),
-      rarity: character.rarity,
-      position: character.position,
-      team: teamNo,
-    };
+  const formatCharacterData = (characterInput, teamNo) => {
+    const character = characterInput.character;
+    const data = [
+      ["Team: ", teamNo],
+      ["Position: ", character.position],
+    ];
+
+    for (var property in character.baseStat) {
+      data.push([property, character.baseStat[property]]);
+    }
+    return data;
+  };
+
+  const getEquipmentStats = (equipment) => {
+    const stats = [];
+    if (equipment["hp"]) {
+      const value = getStatValue(equipment["hp"]);
+      stats.push(["Equipment bonus hp", value]);
+    }
+    if (equipment["atk"]) {
+      const value = getStatValue(equipment["atk"]);
+      stats.push(["Equipment bonus atk", value]);
+    }
+    if (equipment["def"]) {
+      const value = getStatValue(equipment["def"]);
+      stats.push(["Equipment bonus def", value]);
+    }
+    if (equipment["luck"]) {
+      const value = getStatValue(equipment["luck"]);
+      stats.push(["Equipment bonus luck", value]);
+    }
+    if (equipment["crit"]) {
+      const value = getStatValue(equipment["crit"]);
+      stats.push(["Equipment bonus crit", value]);
+    }
+    if (equipment["speed"]) {
+      const value = getStatValue(equipment["speed"]);
+      stats.push(["Equipment bonus speed", value]);
+    }
+    return stats;
+  };
+
+  const getStatValue = (stat) => {
+    if (stat["flat"]) {
+      return stat["flat"];
+    } else {
+      return stat["percent"] + "%";
+    }
   };
 
   const exportCSV = (stringData) => {
     const exportData = JSON.parse(stringData);
-    const userCharacters = exportData.battleInput.userCharacters.map(
-      (character) => formatCharacterData(character, 1)
-    );
-    const opponentCharacters = exportData.battleInput.opponentCharacters.map(
-      (character) => formatCharacterData(character, 2)
-    );
+    let mergedData = [];
+    exportData.battleInput.userCharacters.forEach((characterInput) => {
+      const data = formatCharacterData(characterInput, 1);
+      data.forEach((dataItem) => {
+        mergedData.push(dataItem);
+      });
+      if (characterInput.equiments.length > 0) {
+        mergedData.push(["Equipment: ", characterInput.equiments[0].key]);
+        const stats = getEquipmentStats(characterInput.equiments[0]);
+        mergedData = [...mergedData, ...stats];
+      }
+    });
+    mergedData.push(["", ""]);
+    exportData.battleInput.opponentCharacters.forEach((characterInput) => {
+      const data = formatCharacterData(characterInput, 2);
+      data.forEach((dataItem) => {
+        mergedData.push(dataItem);
+      });
+    });
 
     // public List<int> winBattles;
     // public List<int> lostBattles;
@@ -59,12 +112,8 @@ function App() {
     const winRate = exportData.winRate;
 
     const workbook = XLSX.utils.book_new();
-    const worksheet1 = XLSX.utils.json_to_sheet([
-      ...userCharacters,
-      ...opponentCharacters,
-    ]);
+    const worksheet1 = XLSX.utils.json_to_sheet(mergedData);
     XLSX.utils.book_append_sheet(workbook, worksheet1, "Characters Info");
-
     const headers = [
       "TurnNo",
       "OrderNo",
