@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "csv-stringify": "^6.4.5",
+    "express": "^4.18.2"
+  }
+}
