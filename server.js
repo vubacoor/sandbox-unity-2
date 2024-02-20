@@ -47,7 +47,7 @@ app.get("/csv-download", async (req, res) => {
 
     var readStream = fs.createReadStream(path);
 
-    readStream.pipe(res);
+    readStream.pipe(res); 
   });
 });
 
